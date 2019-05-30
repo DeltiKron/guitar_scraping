@@ -54,7 +54,7 @@ def clean_data(df):
     df = df.dropna(axis=1, thresh=threshold)
     return df
 
-def get_cleaned_guitatr_data():
+def get_cleaned_guitar_data():
     files = glob('*.csv')
     df = get_data(files[0])
     for f in files[1:]:
