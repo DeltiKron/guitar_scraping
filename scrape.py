@@ -2,7 +2,6 @@ import urllib.request as url
 from time import sleep
 
 import bs4
-import pandas as pd
 from IPython import embed
 
 
@@ -33,21 +32,24 @@ keys = [
 ]
 
 
-def clean_key(instring):
-    outstring = instring
-    outstring = outstring.replace(' ', '_')
-    outstring = outstring.replace('.', '_')
-    outstring = outstring.replace('__', '_')
-    return outstring
-
 
 def get_price(soup):
+    """
+    Extract price from guitar-info page
+    :param soup:  BeautifulSoup instance
+    :return: price
+    """
     price = soup.find('meta', {'itemprop': 'price'}).attrs['content']
     price = float(price)
     return price
 
 
 def get_model(soup):
+    """
+    Extract model name from guitar-info page
+    :param soup:  BeautifulSoup instance
+    :return: model name
+    """
     name_cont = soup.find(class_='rs-prod-headline')
     model = name_cont.find(itemprop='name')
     if model:
@@ -55,24 +57,32 @@ def get_model(soup):
 
 
 def get_manufacturer(soup):
+    """
+    Extract manufacturer from guitar-info page
+    :param soup:  BeautifulSoup instance
+    :return: manufacturer, string
+    """
     man_logo = soup.find(class_='rs-prod-manufacturer-logo')
     manufacturer = man_logo.find('img')['alt']
     return manufacturer
 
 
 def get_sales_rank(soup):
+    """
+    Extract sales rank from guitar-info page
+    :param soup:  BeautifulSoup instance
+    :return: thomann internal sales rank
+    """
     ranking = soup.find(class_='ranking')
     rank = ranking.find_all('tr')[-1].find_all('td')[-1].text
     return int(rank)
 
 
-def get_release(soup):
-    meta_table = soup.find_all(class_='meta-table')
-    date = meta_table.find_all('td')[-1].text
-    return date
-
-
 def scrape_guitar(page):
+    """Scrape attributes from a guitar info page
+    :param page: URL to info page
+    :return: dictionary of attributes parsed from page
+    """
     thepage = url.urlopen(page)
     soup = bs4.BeautifulSoup(thepage, 'html.parser')
     attrs = soup.find('div', {'class': 'rs-prod-keyfeatures'}).find_all('tr')
@@ -84,6 +94,14 @@ def scrape_guitar(page):
 
     info = soup.find('div', {'class': 'info'})
     meta_table = info.find('table', {'class': 'meta-table rs-text'}).find_all('tr')
+
+    def clean_key(instring):
+        '''reformatting for locale reasons, minor'''
+        outstring = instring
+        outstring = outstring.replace(' ', '_')
+        outstring = outstring.replace('.', '_')
+        outstring = outstring.replace('__', '_')
+        return outstring
 
     for row in meta_table:
         fields = row.find_all('td')
@@ -98,24 +116,6 @@ def scrape_guitar(page):
 
     attr_dict['modell'] = get_model(soup)
     return attr_dict
-
-
-def make_df(dicts):
-    keys = []
-    for d in dicts:
-        keys += d.keys()
-        keys = list(set(keys))
-    data = {}
-    for k in keys:
-        data[k] = []
-    for d in dicts:
-        for k in keys:
-            if k in d.keys():
-                data[k].append(d[k])
-            else:
-                data[k].append(None)
-    df = pd.DataFrame(data)
-    return df
 
 
 if __name__ == '__main__':
