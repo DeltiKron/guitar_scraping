@@ -1,5 +1,5 @@
 import bs4
-import urllib2 as url
+import urllib.request as url
 from IPython import embed
 from time import sleep
 import pandas as pd
@@ -11,7 +11,6 @@ def parse_list_page_for_links(page):
     links = [g.attrs['href'].strip() for g in guitars]
     thepage.close()
     return links
-
 
 
 keys =[
@@ -40,6 +39,33 @@ def clean_key(instring):
     return outstring
     
 
+def get_price(soup):
+    price = soup.find('meta', {'itemprop': 'price'}).attrs['content']
+    price = float(price)
+    return price
+
+
+def get_model(soup):
+    name_cont = soup.find(class_='rs-prod-headline')
+    model = name_cont.find(itemprop='name')
+    if model:
+        return model.text.strip()
+
+def get_manufacturer(soup):
+    man_logo = soup.find(class_='rs-prod-manufacturer-logo')
+    manufacturer = man_logo.find('img')['alt']
+    return manufacturer
+
+def get_sales_rank(soup):
+    ranking = soup.find(class_='ranking')
+    rank = ranking.find_all('tr')[-1].find_all('td')[-1].text
+    return int(rank)
+
+def get_release(soup):
+    meta_table = soup.find_all(class_='meta-table')
+    date = meta_table.find_all('td')[-1].text
+    return date
+
 def scrape_guitar(page):
     thepage = url.urlopen(page)
     soup = bs4.BeautifulSoup(thepage, 'html.parser')
@@ -59,11 +85,13 @@ def scrape_guitar(page):
         val = fields[1].text.strip()
         attr_dict[clean_key(key)] = val
 
-    price = soup.find('span',{'class':'primary','itemprop':'price'}).text
-    attr_dict['preis'] = int(price[:-1].strip().replace('.',''))
+    price = get_price(soup)
+    attr_dict['preis'] = price
+    attr_dict['hersteller'] = get_manufacturer(soup)
+    attr_dict['verkaufsrang'] = get_sales_rank(soup)
 
-    attr_dict['hersteller'] = soup.find('span',{'class':'word-part manufacturer-name'}).text.strip()
-    attr_dict['modell'] = soup.find('span',{'class':'word-part prod-name'}).text.strip()
+
+    attr_dict['modell'] = get_model(soup)
     return attr_dict
 
 def make_df(dicts):
@@ -86,19 +114,19 @@ def make_df(dicts):
             
 
 if __name__ == '__main__':
-    landing_page = 'https://www.thomann.de/de/folk_gitarren.html?pg=%d&ls=100'
+    landing_page = 'https://www.thomann.de/de/sonstige_westerngitarren.html?pg=%d&ls=100'
     links = []
 
-    for i in [1,2]:
+    for i in range(1,2):
         links += parse_list_page_for_links(landing_page%i)
     links = list(set(links))
     dicts = []
     for l in links:
-        print l
+        print(l)
         try:
             dicts.append(scrape_guitar(l))
         except:
-            print 'error'
+            print('error')
             continue
         sleep(1)
     embed()
