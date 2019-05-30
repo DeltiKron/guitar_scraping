@@ -1,8 +1,9 @@
-from glob import glob
-import pandas as pd
 import datetime
 import locale
 import os
+from glob import glob
+
+import pandas as pd
 
 
 def get_date(date_string):

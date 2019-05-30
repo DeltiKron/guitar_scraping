@@ -1,8 +1,9 @@
-import bs4
 import urllib.request as url
-from IPython import embed
 from time import sleep
+
+import bs4
 import pandas as pd
+from IPython import embed
 
 
 def parse_list_page_for_links(page):
