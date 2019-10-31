@@ -7,7 +7,15 @@ import pandas as pd
 
 
 def get_date(date_string):
-    locale.setlocale(locale.LC_ALL, '')
+    for loc in ["de_DE", "deu_deu"]:
+        try:
+            locale.setlocale(locale.LC_ALL, loc)
+            break
+        except:
+            continue
+    else:
+        raise ValueError("couldn't set locale!")
+
     time = datetime.datetime.strptime(date_string, '%B %Y')
     date = time.date()
     return date
