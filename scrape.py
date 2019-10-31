@@ -1,16 +1,26 @@
+import datetime
 import urllib.request as url
+from os.path import basename
 from time import sleep
 
 import bs4
 from IPython import embed
-
+import pandas as pd
 
 def parse_list_page_for_links(page):
-    thepage = url.urlopen(page)
-    soup = bs4.BeautifulSoup(thepage, 'html.parser')
-    guitars = soup.find_all('a', {'class': 'article-link link'})
-    links = [g.attrs['href'].strip() for g in guitars]
-    thepage.close()
+    links = []
+    next = page
+
+    while next:
+        print(next)
+        page_html = url.urlopen(next)
+        soup = bs4.BeautifulSoup(page_html, 'html.parser')
+        guitars = soup.find_all('a', {'class': 'article-link link'})
+        guitar_links = [g.attrs['href'].strip() for g in guitars]
+        links += set(guitar_links)
+
+        next_page = soup.find_all('a', {'class': "button next"})
+        next = "https://www.thomann.de" + next_page[0]['href'] if next_page else False
     return links
 
 
@@ -78,60 +88,75 @@ def get_sales_rank(soup):
     return int(rank)
 
 
+def clean_key(instring):
+    '''reformatting for locale reasons, minor'''
+    outstring = instring
+    outstring = outstring.replace(' ', '_')
+    outstring = outstring.replace('.', '_')
+    outstring = outstring.replace('__', '_')
+    return outstring
+
+
 def scrape_guitar(page):
     """Scrape attributes from a guitar info page
     :param page: URL to info page
     :return: dictionary of attributes parsed from page
     """
-    thepage = url.urlopen(page)
-    soup = bs4.BeautifulSoup(thepage, 'html.parser')
-    attrs = soup.find('div', {'class': 'rs-prod-keyfeatures'}).find_all('tr')
-    attr_dict = {}
-    for row in attrs:
-        key = row.find('th').text.strip().lower()
-        val = row.find('td').text.strip()
-        attr_dict[clean_key(key)] = val
+    with url.urlopen(page) as thepage:
+        soup = bs4.BeautifulSoup(thepage, 'html.parser')
+        attrs = soup.find('div', {'class': 'rs-prod-keyfeatures'}).find_all('tr')
+        attr_dict = {}
+        for row in attrs:
+            key = row.find('th').text.strip().lower()
+            val = row.find('td').text.strip()
+            attr_dict[clean_key(key)] = val
 
-    info = soup.find('div', {'class': 'info'})
-    meta_table = info.find('table', {'class': 'meta-table rs-text'}).find_all('tr')
+        info = soup.find('div', {'class': 'info'})
+        meta_table = info.find('table', {'class': 'meta-table rs-text'}).find_all('tr')
 
-    def clean_key(instring):
-        '''reformatting for locale reasons, minor'''
-        outstring = instring
-        outstring = outstring.replace(' ', '_')
-        outstring = outstring.replace('.', '_')
-        outstring = outstring.replace('__', '_')
-        return outstring
+        for row in meta_table:
+            fields = row.find_all('td')
+            key = fields[0].text.strip().lower()
+            val = fields[1].text.strip()
+            attr_dict[clean_key(key)] = val
 
-    for row in meta_table:
-        fields = row.find_all('td')
-        key = fields[0].text.strip().lower()
-        val = fields[1].text.strip()
-        attr_dict[clean_key(key)] = val
+        price = get_price(soup)
+        attr_dict['preis'] = price
+        attr_dict['hersteller'] = get_manufacturer(soup)
+        attr_dict['verkaufsrang'] = get_sales_rank(soup)
 
-    price = get_price(soup)
-    attr_dict['preis'] = price
-    attr_dict['hersteller'] = get_manufacturer(soup)
-    attr_dict['verkaufsrang'] = get_sales_rank(soup)
-
-    attr_dict['modell'] = get_model(soup)
+        attr_dict['modell'] = get_model(soup)
     return attr_dict
 
 
 if __name__ == '__main__':
-    landing_page = 'https://www.thomann.de/de/sonstige_westerngitarren.html?pg=%d&ls=100'
-    links = []
+    landing_pages = [
+        'https://www.thomann.de/de/sonstige_westerngitarren.html?pg=1&ls=100',
+        'https://www.thomann.de/de/dreadnought_gitarren.html',
+        'https://www.thomann.de/de/jumbo_gitarren.html',
+        'https://www.thomann.de/de/folk_gitarren.html',
+        'https://www.thomann.de/de/sonstige_westerngitarren.html',
+    ]
+    for landing_page in landing_pages:
 
-    for i in range(1, 2):
-        links += parse_list_page_for_links(landing_page % i)
-    links = list(set(links))
-    dicts = []
-    for l in links:
-        print(l)
-        try:
-            dicts.append(scrape_guitar(l))
-        except:
-            print('error')
-            continue
-        sleep(1)
-    embed()
+        links = parse_list_page_for_links(landing_page)
+        links = list(set(links))
+        n_links = len(links)
+        chunk_size = 100
+        chunks = [links[i:min(i + chunk_size, n_links - 1)] for i in range(0, n_links, chunk_size)]
+        dicts = []
+        for i, chunk in enumerate(chunks):
+            for l in chunk:
+                print(l)
+                try:
+                    dicts.append(scrape_guitar(l))
+                except:
+                    print("error")
+                    continue
+                sleep(1)
+
+            fn = basename(landing_page).split('.')[0]
+            df = pd.DataFrame(dicts)
+            df["date"] = datetime.datetime.now()
+            full_fn = fn + f"_chunk_{i:03d}.csv"
+            df.to_csv(full_fn)
