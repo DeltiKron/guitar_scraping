@@ -4,8 +4,8 @@ from os.path import basename
 from time import sleep
 
 import bs4
-from IPython import embed
 import pandas as pd
+
 
 def parse_list_page_for_links(page):
     links = []
@@ -40,7 +40,6 @@ keys = [
     u'boden_und_zargen',
     u'koffer'
 ]
-
 
 
 def get_price(soup):
