@@ -1,6 +1,7 @@
 import datetime
+import os
 import urllib.request as url
-from os.path import basename
+from os.path import basename, join, dirname, exists
 from time import sleep
 
 import bs4
@@ -143,8 +144,8 @@ if __name__ == '__main__':
         n_links = len(links)
         chunk_size = 100
         chunks = [links[i:min(i + chunk_size, n_links - 1)] for i in range(0, n_links, chunk_size)]
-        dicts = []
         for i, chunk in enumerate(chunks):
+            dicts = []
             for l in chunk:
                 print(l)
                 try:
@@ -154,8 +155,12 @@ if __name__ == '__main__':
                     continue
                 sleep(1)
 
+            outdir = datetime.datetime.now().strftime("%Y-%m-%d")
+            outdir = join(dirname(__file__), outdir)
+            if not exists(outdir):
+                os.makedirs(outdir)
             fn = basename(landing_page).split('.')[0]
             df = pd.DataFrame(dicts)
             df["date"] = datetime.datetime.now()
             full_fn = fn + f"_chunk_{i:03d}.csv"
-            df.to_csv(full_fn)
+            df.to_csv(join(outdir, full_fn))

@@ -1,8 +1,9 @@
+import sys
 import datetime
 import locale
 import os
 from glob import glob
-
+from os.path import join
 import pandas as pd
 
 
@@ -68,7 +69,8 @@ def clean_data(df):
 
 
 def get_cleaned_guitar_data():
-    files = glob('*.csv')
+
+    files = glob(join(sys.argv[-1],'*.csv'))
     df = get_data(files[0])
     for f in files[1:]:
         df = df.append(get_data(f))
