@@ -142,7 +142,7 @@ if __name__ == '__main__':
         links = parse_list_page_for_links(landing_page)
         links = list(set(links))
         n_links = len(links)
-        chunk_size = 100
+        chunk_size = 1
         chunks = [links[i:min(i + chunk_size, n_links - 1)] for i in range(0, n_links, chunk_size)]
         for i, chunk in enumerate(chunks):
             dicts = []
@@ -156,7 +156,7 @@ if __name__ == '__main__':
                 sleep(1)
 
             outdir = datetime.datetime.now().strftime("%Y-%m-%d")
-            outdir = join(dirname(__file__), outdir)
+            outdir = join(basename(dirname(__file__)),'data', outdir)
             if not exists(outdir):
                 os.makedirs(outdir)
             fn = basename(landing_page).split('.')[0]
