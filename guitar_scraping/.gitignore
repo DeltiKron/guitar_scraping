@@ -1,5 +1,4 @@
 bu
-clean_data.py
 data/*
 *.db
 older

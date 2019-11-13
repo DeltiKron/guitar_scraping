@@ -1,4 +1,5 @@
 #!/bin/bash
 source ~/anaconda3/bin/activate
 conda activate sdc
-python /dat/schaffer/projects/guitar_scraping/scrape.py
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+python $DIR/scrape.py
