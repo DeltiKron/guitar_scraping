@@ -126,6 +126,12 @@ def scrape_guitar(page):
         attr_dict['verkaufsrang'] = get_sales_rank(soup)
 
         attr_dict['modell'] = get_model(soup)
+
+        product_text = soup.select_one(".rs-prod-text")
+        if product_text:
+            attr_dict["product_text"] = product_text.text
+        print(attr_dict)
+
     return attr_dict
 
 
