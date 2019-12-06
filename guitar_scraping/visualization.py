@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
+import pandas as pd
 
 from clean_data import get_cleaned_guitar_data
 
@@ -39,6 +40,21 @@ class Guitar_Visualization():
         plt.xticks(rotation=90)
         plt.tight_layout()
         return ax
+
+
+
+def change_plot(total_data_frame):
+    """Make a plot of the price of the most strongly varying guitars over time."""
+    variation = total_data_frame.groupby("artikelnummer")["preis"].std()
+    changed = variation[ variation > 0]
+    art_nummern = changed.index
+    only_with_changes = total_data_frame.loc[(art_nummern,slice(None))]
+    largest_changes = only_with_changes.groupby("artikelnummer")['preis'].std().sort_values().tail(20).index
+    changers = total_data_frame.loc[(largest_changes,slice(None))]
+    changers = changers.reset_index()
+    changers['date'] = pd.to_datetime(changers.date).dt.date
+    data = changers[['artikelnummer', 'date', 'modell','preis','hersteller']]
+    sns.lineplot(x='date',y='preis',hue='modell',data=data)
 
 
 if __name__ == '__main__':
