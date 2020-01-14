@@ -3,7 +3,7 @@ import datetime
 import locale
 import os
 from glob import glob
-from os.path import join
+from os.path import join, dirname
 import pandas as pd
 
 
@@ -89,7 +89,10 @@ def get_cleaned_df(filename):
 
 
 def get_cleaned_guitar_data():
-    files = glob(join(sys.argv[-1], '*.csv'))
+    pattern = join(dirname(__file__), '../data/*/*.csv')
+    print(pattern)
+    files = glob(pattern)
+    
     df = get_data(files[0])
     for f in files[1:]:
         df = df.append(get_data(f))

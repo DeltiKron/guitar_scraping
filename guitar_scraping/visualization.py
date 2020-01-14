@@ -2,14 +2,14 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 
-from clean_data import get_cleaned_guitar_data
+from .clean_data import get_cleaned_guitar_data
 
 
 def setup_style():
     sns.set_style('darkgrid')
 
 
-class Guitar_Visualization():
+class GuitarVisualization():
     def __init__(self):
         """
         Class for visual EDA of the Thomann guitar dataset.
@@ -58,7 +58,7 @@ def change_plot(total_data_frame):
 
 
 if __name__ == '__main__':
-    gv = Guitar_Visualization()
+    gv = GuitarVisualization()
     print(gv.data.columns)
     fig = gv.price_by_brand()
     plt.show()
