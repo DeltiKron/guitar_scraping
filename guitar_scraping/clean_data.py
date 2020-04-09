@@ -5,7 +5,7 @@ import os
 from glob import glob
 from os.path import join, dirname
 import pandas as pd
-
+from tqdm import tqdm
 
 def get_date(date_string):
     for loc in ["de_DE", "deu_deu"]:
@@ -94,8 +94,15 @@ def get_cleaned_guitar_data():
     files = glob(pattern)
     
     df = get_data(files[0])
-    for f in files[1:]:
-        df = df.append(get_data(f))
+    progress_bar = tqdm(files[1:])
+    for f in progress_bar:
+        progress_bar.set_description(f)
+        try:
+            df = df.append(get_data(f))
+        except KeyError as ke:
+            print(f'error in {f}')
+            print(ke)
+            
 
     cleaned = clean_data(df)
     return cleaned

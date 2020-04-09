@@ -156,6 +156,7 @@ if __name__ == '__main__':
 
         outdir = datetime.datetime.now().strftime("%Y-%m-%d")
         outdir = join(dirname(abspath(dirname(__file__))), 'data', outdir)
+        print("saving_to"+outdir)
         if not exists(outdir):
             os.makedirs(outdir)
 
