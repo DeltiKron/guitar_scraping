@@ -1,11 +1,12 @@
-import sys
 import datetime
 import locale
 import os
 from glob import glob
 from os.path import join, dirname
+
 import pandas as pd
 from tqdm import tqdm
+
 
 def get_date(date_string):
     for loc in ["de_DE", "deu_deu"]:
@@ -24,8 +25,8 @@ def get_date(date_string):
 
 def get_data(filename):
     df = pd.read_csv(filename)
-    df['date'] =pd.to_datetime(df['date'])
-    df['artikelnummer'] =pd.to_numeric(df['artikelnummer'])
+    df['date'] = pd.to_datetime(df['date'])
+    df['artikelnummer'] = pd.to_numeric(df['artikelnummer'])
     df = df.set_index(['artikelnummer', 'date'])
     df.category = os.path.basename(filename)
     return df
@@ -81,6 +82,7 @@ def clean_data(df):
         df = df[df.columns.drop("Unnamed: 0")]
     return df
 
+
 def get_cleaned_df(filename):
     """Read_csv and clean columns."""
     data_frame = get_data(filename)
@@ -88,11 +90,10 @@ def get_cleaned_df(filename):
     return cleaned
 
 
-def get_cleaned_guitar_data():
-    pattern = join(dirname(__file__), '../data/*/*.csv')
-    print(pattern)
+def get_cleaned_guitar_data(pattern=None):
+    if pattern is None:
+        pattern = pattern = join(dirname(__file__), '../data/*/*.csv')
     files = glob(pattern)
-    
     df = get_data(files[0])
     progress_bar = tqdm(files[1:])
     for f in progress_bar:
@@ -102,7 +103,6 @@ def get_cleaned_guitar_data():
         except KeyError as ke:
             print(f'error in {f}')
             print(ke)
-            
 
     cleaned = clean_data(df)
     return cleaned
