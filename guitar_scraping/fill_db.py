@@ -5,21 +5,21 @@
 Created by schaffer at 11/22/19
 
 """
-from glob import glob
+from pathlib import Path
 
-import pandas as pd
-import seaborn as sns
-from os.path import dirname, join, abspath, basename
-from clean_data import get_cleaned_df
+from guitar_scraping.clean_data import get_guitars, get_sales
+from guitar_scraping.db_interface import add_df_to_db
+from guitar_scraping.db_interface.data_models import GuitarInfo, SalesInfo
+from tqdm import tqdm
 
-directory = dirname(dirname(abspath(__file__)))
-data_dirs = glob(join(directory, "data", "????-??-??"))
+directory = Path(__file__).parents[1] / "data"
+data_dirs = [*directory.glob("????-??-??")]
 
-data_sets = {basename(d): glob(join(d, "*.csv")) for d in data_dirs}
-
-
-daily_frames = {}
-for day, files in data_sets.items():
-    dfs = [get_cleaned_df(f) for f in files]
-    daily_frame = pd.concat(dfs)
-    daily_frames[day] = daily_frame
+progress_bar = tqdm(data_dirs)
+for day in progress_bar:
+    progress_bar.set_description(str(day))
+    pattern = "/*.csv"
+    guitars = get_guitars(str(day) + pattern)
+    add_df_to_db(guitars, GuitarInfo)
+    sales = get_sales(str(day) + pattern)
+    add_df_to_db(sales, SalesInfo)

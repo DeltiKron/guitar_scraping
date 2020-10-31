@@ -4,7 +4,9 @@ import os
 from glob import glob
 from os.path import join, dirname
 
+import numpy as np
 import pandas as pd
+from guitar_scraping.db_interface.manufacturer_resolver import get_manufacturer_id
 from tqdm import tqdm
 
 
@@ -91,8 +93,7 @@ def get_cleaned_df(filename):
 
 
 def get_cleaned_guitar_data(pattern=None):
-    if pattern is None:
-        pattern = pattern = join(dirname(__file__), '../data/*/*.csv')
+    pattern = pattern or join(dirname(__file__), '../data/*/*.csv')
     files = glob(pattern)
     df = get_data(files[0])
     progress_bar = tqdm(files[1:])
@@ -106,3 +107,34 @@ def get_cleaned_guitar_data(pattern=None):
 
     cleaned = clean_data(df)
     return cleaned
+
+
+def get_guitars(pattern=None):
+    df = get_cleaned_guitar_data(pattern)
+    df.reset_index(inplace=True)
+    # Process guitar model data
+    df["hersteller_id"] = df.hersteller.apply(get_manufacturer_id)
+    df["erhaeltlich_seit"] = pd.to_datetime(df.erhältlich_seit)
+    df["holz_boden_zargen"] = df.boden_und_zargen
+    df["cutaway"] = df.cutaway.astype(bool)
+    df["holz_decke"] = df.decke
+    df["tonabnehmer"] = df.cutaway.astype(bool)
+    df["tonabnehmer"] = df.groupby("modell").first().cutaway.astype(bool)
+    df.loc[df["bünde"] > 25].bünde = 0
+    df.bünde.replace(0, np.nan, inplace=True)
+    df.bünde.value_counts().sort_index()
+    df["erhaeltlich_seit"] = pd.to_datetime(df.erhältlich_seit)
+    df["buende"] = df.bünde
+    to_db = df[['artikelnummer', 'bauweise', 'cutaway', 'farbe', 'griffbrett', 'inkl_gigbag',
+                'koffer', 'tonabnehmer', 'verkaufsrang', 'hersteller_id', 'erhaeltlich_seit', 'buende',
+                'holz_decke', 'modell',
+                'holz_boden_zargen']].copy()
+    to_db.sort_values("erhaeltlich_seit", ascending=False, inplace=True)
+    return to_db
+
+
+def get_sales(pattern=None):
+    df = get_cleaned_guitar_data(pattern)
+    df.reset_index(inplace=True)
+    sales = df[['artikelnummer', 'date', 'preis', 'verkaufsrang']].copy()
+    return sales
