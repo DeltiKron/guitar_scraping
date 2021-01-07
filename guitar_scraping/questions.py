@@ -68,7 +68,6 @@ def unique_articles_per_manufacturer_over_time(start_date=None, end_date=None):
         if day is not None and date != day:
             array_res[i, :] = np.array([len(manufacturer_count[m]) for m in manufacturers])
             day = date
-            print(i, array_res[i, :])
             i += 1
 
         manufacturer = row['manufacturer']
