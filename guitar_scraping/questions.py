@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import numpy as np
 import pandas as pd
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
@@ -35,8 +36,47 @@ def daywise_manufacturer_count(start_date=None, end_date=None):
     records = query.all()
     df = pd.DataFrame(records, columns=['date', 'manufacturer', 'count'])
     df.date = pd.to_datetime(df.date)
-    df=df.pivot(columns='manufacturer', index='date', values='count')
+    df = df.pivot(columns='manufacturer', index='date', values='count')
     return df
+
+
+def unique_articles_per_manufacturer_over_time(start_date=None, end_date=None):
+    session = Session(engine)
+    date = sa.func.date(SalesInfo.date)
+    query = session.query(date, SalesInfo.artikelnummer, SalesInfo.preis, GuitarInfo.modell,
+                          ManufacturerInfo.name).filter(
+        GuitarInfo.artikelnummer == SalesInfo.artikelnummer).filter(
+        GuitarInfo.hersteller_id == ManufacturerInfo.id)
+    if start_date:
+        query = query.filter(SalesInfo.date > start_date)
+    if end_date:
+        query = query.filter(SalesInfo.date < end_date)
+    records = query.all()
+    df = pd.DataFrame(records, columns=['date', 'article_number', 'price', 'model_name', 'manufacturer'])
+
+    manufacturers = df.manufacturer.unique()
+    manufacturer_count = {manufacturer: set() for manufacturer in manufacturers}
+
+    array_res = np.zeros((len(df.date.unique()), len(manufacturer_count)))
+
+    day = df.date[0]
+    i = 0
+    for row_record in df.sort_index().iterrows():
+        index, row = row_record
+        date = row['date']
+        # add data entry if on new day
+        if day is not None and date != day:
+            array_res[i, :] = np.array([len(manufacturer_count[m]) for m in manufacturers])
+            day = date
+            print(i, array_res[i, :])
+            i += 1
+
+        manufacturer = row['manufacturer']
+        article = row['article_number']
+        manufacturer_count[manufacturer].add(article)
+
+    df_res = pd.DataFrame(array_res, columns=manufacturers, index=sorted(df.date.unique()))
+    return df_res
 
 def day_data(date):
     # Clean input to target only specific day
