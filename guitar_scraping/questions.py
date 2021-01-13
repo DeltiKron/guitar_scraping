@@ -38,6 +38,20 @@ def daywise_manufacturer_count(start_date=None, end_date=None):
     df=df.pivot(columns='manufacturer', index='date', values='count')
     return df
 
+def day_data(date):
+    # Clean input to target only specific day
+    if isinstance(date,datetime):
+        date = datetime.date()
+
+    session = Session(engine)
+    query = session.query(GuitarInfo, ManufacturerInfo, SalesInfo).filter(
+        GuitarInfo.artikelnummer == SalesInfo.artikelnummer).filter(
+        GuitarInfo.hersteller_id == ManufacturerInfo.id)
+    query = query.filter(sa.func.date(SalesInfo.date) == date)
+    df = pd.read_sql(query.statement, query.session.bind)
+    return df
+
 if __name__ == '__main__':
+    day_data(datetime(2020,5,31).date())
     # print(sales_availability())
     print(daywise_manufacturer_count(start_date=datetime(2020, 10, 10), end_date=datetime(2020, 11, 15)))
