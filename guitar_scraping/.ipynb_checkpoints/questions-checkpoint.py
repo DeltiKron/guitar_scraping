@@ -26,7 +26,7 @@ def sales_availability():
 def daywise_manufacturer_count(start_date=None, end_date=None):
     session = Session(engine)
     date = sa.func.date(SalesInfo.date)
-    query = session.query(date, ManufacturerInfo.name, sa.func.count(sa.func.distinct(GuitarInfo.artikelnummer))).filter(
+    query = session.query(date, ManufacturerInfo.name, sa.func.count('*')).filter(
         GuitarInfo.artikelnummer == SalesInfo.artikelnummer).filter(
         GuitarInfo.hersteller_id == ManufacturerInfo.id).group_by(date, ManufacturerInfo.name)
     if start_date:
@@ -88,14 +88,6 @@ def day_data(date):
         GuitarInfo.artikelnummer == SalesInfo.artikelnummer).filter(
         GuitarInfo.hersteller_id == ManufacturerInfo.id)
     query = query.filter(sa.func.date(SalesInfo.date) == date)
-    df = pd.read_sql(query.statement, query.session.bind)
-    return df
-
-def articles_mean_price():
-    session = Session(engine)
-    query = session.query(sa.func.avg(SalesInfo.preis).label('avg_price'),  GuitarInfo, ManufacturerInfo, SalesInfo).filter(
-        GuitarInfo.artikelnummer == SalesInfo.artikelnummer).filter(
-        GuitarInfo.hersteller_id == ManufacturerInfo.id).group_by(GuitarInfo.artikelnummer)
     df = pd.read_sql(query.statement, query.session.bind)
     return df
 
