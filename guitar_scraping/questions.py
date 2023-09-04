@@ -99,6 +99,13 @@ def articles_mean_price():
     df = pd.read_sql(query.statement, query.session.bind)
     return df
 
+def seasonality_base_data():
+    session = Session(engine)
+    query ="select artikelnummer, date, preis from sales where (artikelnummer, strftime('%Y',date)) in (select artikelnummer, strftime('%Y', date) as year from sales group by artikelnummer, year having count(artikelnummer > 360) order by artikelnummer asc , year asc);"
+    df = pd.read_sql(query, engine)
+    df.date = pd.to_datetime(df.date)
+    return df
+
 if __name__ == '__main__':
     day_data(datetime(2020,5,31).date())
     # print(sales_availability())

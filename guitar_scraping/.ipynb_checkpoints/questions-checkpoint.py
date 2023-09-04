@@ -26,7 +26,7 @@ def sales_availability():
 def daywise_manufacturer_count(start_date=None, end_date=None):
     session = Session(engine)
     date = sa.func.date(SalesInfo.date)
-    query = session.query(date, ManufacturerInfo.name, sa.func.count('*')).filter(
+    query = session.query(date, ManufacturerInfo.name, sa.func.count(sa.func.distinct(GuitarInfo.artikelnummer))).filter(
         GuitarInfo.artikelnummer == SalesInfo.artikelnummer).filter(
         GuitarInfo.hersteller_id == ManufacturerInfo.id).group_by(date, ManufacturerInfo.name)
     if start_date:
@@ -89,6 +89,21 @@ def day_data(date):
         GuitarInfo.hersteller_id == ManufacturerInfo.id)
     query = query.filter(sa.func.date(SalesInfo.date) == date)
     df = pd.read_sql(query.statement, query.session.bind)
+    return df
+
+def articles_mean_price():
+    session = Session(engine)
+    query = session.query(sa.func.avg(SalesInfo.preis).label('avg_price'),  GuitarInfo, ManufacturerInfo, SalesInfo).filter(
+        GuitarInfo.artikelnummer == SalesInfo.artikelnummer).filter(
+        GuitarInfo.hersteller_id == ManufacturerInfo.id).group_by(GuitarInfo.artikelnummer)
+    df = pd.read_sql(query.statement, query.session.bind)
+    return df
+
+def seasonality_base_data():
+    session = Session(engine)
+    query ="select artikelnummer, date, preis from sales where (artikelnummer, strftime('%Y',date)) in (select artikelnummer, strftime('%Y', date) as year from sales group by artikelnummer, year having count(artikelnummer > 360) order by artikelnummer asc , year asc);"
+    df = pd.read_sql(query, engine)
+    df.date = pd.to_datetime(df.date)
     return df
 
 if __name__ == '__main__':
