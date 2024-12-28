@@ -3,7 +3,7 @@ from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-DB_URL= "sqlite:///"+str(Path(__file__).parent / 'guitar_listings.db')
+DB_URL= "sqlite:///"+str(Path(__file__).parent.parent/'data' / 'guitar_listings.db')
 
 column_name_translation = dict(
     modell="model",

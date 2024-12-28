@@ -1,4 +1,4 @@
-from guitar_scraping.config import DB_URL
+from guitar_scraping.db_interface.config import DB_URL
 from sqlalchemy import String, Boolean, BigInteger, Integer, DateTime, Float
 from sqlalchemy import create_engine, Column
 from sqlalchemy.ext.declarative import declarative_base

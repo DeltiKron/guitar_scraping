@@ -4,7 +4,7 @@ import pandas as pd
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
 
-from guitar_scraping.db_interface.data_models import SalesInfo, engine, ManufacturerInfo, GuitarInfo
+from ..db_interface.data_models import SalesInfo, engine, ManufacturerInfo, GuitarInfo
 
 
 def sales_availability():

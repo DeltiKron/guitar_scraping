@@ -1,4 +1,4 @@
-from guitar_scraping.config import Session
+from guitar_scraping.db_interface.config import Session
 from guitar_scraping.db_interface.data_models import ManufacturerInfo
 
 session = Session()

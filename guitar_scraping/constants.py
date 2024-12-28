@@ -1,0 +1,1 @@
+DB_PATH='sqlite:////data/guitar_listings.db'
