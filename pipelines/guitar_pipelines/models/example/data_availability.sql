@@ -9,16 +9,17 @@
 
 {{ config(materialized='table') }}
 
-with source_data as (
+with sales_stats as (
+select count(*) as n_listings, max(date) as max_date, min(date) as min_date, timediff(max(date), min(date)) as time_covered, artikelnummer from sales group by artikelnummer),
 
-    select 1 as id
-    union all
-    select null as id
 
+data_availability as (
+    select g.artikelnummer, s.n_listings,  s.min_date, s.max_date, time_covered
+    from gitarren as g
 )
 
 select *
-from source_data
+from data_availability
 
 /*
     Uncomment the line below to remove records with null `id` values
