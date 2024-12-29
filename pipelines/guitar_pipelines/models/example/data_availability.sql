@@ -16,6 +16,7 @@ select count(*) as n_listings, max(date) as max_date, min(date) as min_date, tim
 data_availability as (
     select g.artikelnummer, s.n_listings,  s.min_date, s.max_date, time_covered
     from gitarren as g
+    left join sales_stats as s on g.artikelnummer == s.artikelnummer
 )
 
 select *
