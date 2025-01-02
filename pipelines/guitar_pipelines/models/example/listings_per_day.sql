@@ -1,7 +1,7 @@
-{{ config(materialized='table') }}
+{{ config(materialized='view') }}
 
 
-with listings_per_day as (SELECT date(sales.date) AS date_1, count(*) AS count_1 
-FROM sales GROUP BY date(sales.date))
+with listings_per_day as (SELECT day, count(*) AS n_listings 
+FROM {{ ref('cleaned_sales_data')}} GROUP BY day order by n_listings asc)
 
 select * from listings_per_day

@@ -1,10 +1,13 @@
 from datetime import datetime
+import sqlite3
 
 import pandas as pd
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
 
-from ..db_interface.data_models import SalesInfo, engine, ManufacturerInfo, GuitarInfo
+from guitar_scraping.constants import DB_PATH
+from guitar_scraping.db_interface.data_models import GuitarInfo, ManufacturerInfo, SalesInfo, engine
+
 
 
 def sales_availability():
@@ -12,13 +15,11 @@ def sales_availability():
     Overview of number of listings per day
     """
     # Get number of entries per date
-    session = Session(engine)
-    res = session.query(sa.func.date(SalesInfo.date), sa.func.count()).group_by(sa.func.date(SalesInfo.date)).all()
-
+    con = sqlite3.connect( DB_PATH)
+    df = pd.read_sql_query('select * from listings_per_day order by day asc',con )
     # Package results to df
-    df = pd.DataFrame(res, columns=['date', 'available_listings'])
-    df.date = pd.to_datetime(df.date)
-    df = df.set_index('date')
+    df.day = pd.to_datetime(df.day)
+    df = df.set_index('day')
     return df
 
 
@@ -52,6 +53,6 @@ def day_data(date):
     return df
 
 if __name__ == '__main__':
-    day_data(datetime(2020,5,31).date())
-    # print(sales_availability())
+    # day_data(datetime(2020,5,31).date())
+    print(sales_availability())
     print(daywise_manufacturer_count(start_date=datetime(2020, 10, 10), end_date=datetime(2020, 11, 15)))
