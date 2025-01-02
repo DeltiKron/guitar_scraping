@@ -2,17 +2,17 @@
 
 
 with date_records as (
-SELECT date(s.date) AS date_1,
+SELECT day,
     m.name as manufacturer_name,
     m.id
  
-FROM sales as s
-left join guitars as g on g.artikelnummer == s.artikelnummer
-left join manufacturers as m on g.hersteller_id == m.id
+FROM {{ ref("cleaned_sales_data") }} as s
+left join {{ source('main','guitars')}} as g on g.artikelnummer == s.artikelnummer
+left join {{ source('main','manufacturers')}} as m on g.hersteller_id == m.id
 ),
  daywise_manufacturer_count as (
- select count(*) as n_listings, date_1 as date, manufacturer_name, id as manufacturer_id from date_records
- group by date, manufacturer_name 
+ select count(*) as n_listings, day, manufacturer_name, id as manufacturer_id from date_records
+ group by day, manufacturer_name 
  order by n_listings desc 
  )
 

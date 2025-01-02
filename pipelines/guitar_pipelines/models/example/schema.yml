@@ -2,13 +2,24 @@
 version: 2
 
 models:
-  - name: my_first_dbt_model
-    description: "A starter dbt model"
+  - name: cleaned_sales_data
+    description: "Cleandes slaes listings data"
     columns:
-      - name: id
-        description: "The primary key for this table"
+      - name: artikelnummer
+        description: "The primary key for this table, artikel nummer from Thomann"
         tests:
-          - unique
+          - not_null
+      - name: date
+        description: "When was this listing observed"
+        tests:
+          - not_null
+      - name: preis
+        description: "Price of Guitar"
+        tests:
+          - not_null
+      - name: verkaufsrang
+        description: "Internal Thomann sales rank"
+        tests:
           - not_null
 
   - name: my_second_dbt_model

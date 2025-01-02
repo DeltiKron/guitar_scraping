@@ -1,0 +1,9 @@
+version: 1
+
+sources:
+  - name: main
+    database:  guitar_listings   
+    tables:
+      - name: sales
+      - name: guitars
+      - name: manufacturers

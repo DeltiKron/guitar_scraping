@@ -3,3 +3,4 @@ data/*
 *.db
 older
 __pycache__
+logs/dbt.log
