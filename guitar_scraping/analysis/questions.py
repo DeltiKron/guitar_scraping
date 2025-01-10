@@ -24,20 +24,10 @@ def sales_availability():
 
 
 def daywise_manufacturer_count(start_date=None, end_date=None):
-    session = Session(engine)
-    date = sa.func.date(SalesInfo.date)
-    query = session.query(date, ManufacturerInfo.name, sa.func.count('*')).filter(
-        GuitarInfo.artikelnummer == SalesInfo.artikelnummer).filter(
-        GuitarInfo.hersteller_id == ManufacturerInfo.id).group_by(date, ManufacturerInfo.name)
-    if start_date:
-        query = query.filter(SalesInfo.date > start_date)
-    if end_date:
-        query = query.filter(SalesInfo.date < end_date)
-    records = query.all()
-    df = pd.DataFrame(records, columns=['date', 'manufacturer', 'count'])
-    df.date = pd.to_datetime(df.date)
-    df=df.pivot(columns='manufacturer', index='date', values='count')
+    con = sqlite3.connect(DB_PATH)
+    df = pd.read_sql_query(f'select * from daywise_manufacturer_count where day >= {start_date:"%Y-%m-%d"} and day < {end_date:"%Y-%m-%d"}',con, parse_dates=['day'], index_col=['day'])
     return df
+
 
 def day_data(date):
     # Clean input to target only specific day
@@ -54,5 +44,6 @@ def day_data(date):
 
 if __name__ == '__main__':
     # day_data(datetime(2020,5,31).date())
-    print(sales_availability())
+    # print(sales_availability())
     print(daywise_manufacturer_count(start_date=datetime(2020, 10, 10), end_date=datetime(2020, 11, 15)))
+    pass
