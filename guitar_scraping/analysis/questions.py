@@ -9,14 +9,18 @@ from guitar_scraping.constants import DB_PATH
 from guitar_scraping.db_interface.data_models import GuitarInfo, ManufacturerInfo, SalesInfo, engine
 
 
+def run_query(query_string, **kwargs):
+    con = sqlite3.connect( DB_PATH)
+    df = pd.read_sql_query(query_string,con, **kwargs )
+    return df
+
 
 def sales_availability():
     """
     Overview of number of listings per day
     """
     # Get number of entries per date
-    con = sqlite3.connect( DB_PATH)
-    df = pd.read_sql_query('select * from listings_per_day order by day asc',con )
+    run_query('select * from listings_per_day order by day asc')
     # Package results to df
     df.day = pd.to_datetime(df.day)
     df = df.set_index('day')
