@@ -1,0 +1,14 @@
+guitar_pipelines:
+  target: dev
+  outputs:
+    dev:
+      type: sqlite
+      threads: 1
+      database: 'guitar_listings'
+      schema: 'main'
+      schemas_and_paths:
+        main: '../../data/guitar_listings.db'
+      schema_directory: 'file_path'
+      #optional fields
+      # extensions:
+      #   - "/path/to/sqlean/crypto.so"
